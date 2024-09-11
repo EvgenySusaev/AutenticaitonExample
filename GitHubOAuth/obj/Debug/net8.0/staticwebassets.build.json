@@ -1,8 +1,8 @@
 {
   "Version": 1,
-  "Hash": "uBEzTTEfk6bWhcx70rdPpA69a1ewVZu/yVIiboMw0sA=",
-  "Source": "OAuth",
-  "BasePath": "_content/OAuth",
+  "Hash": "78MrbFmbdWnES2wHmcq4ojLwW9SoUoI0EG6tA+Wejwk=",
+  "Source": "GitHubOAuth",
+  "BasePath": "_content/GitHubOAuth",
   "Mode": "Default",
   "ManifestType": "Build",
   "ReferencedProjectsConfiguration": [],
