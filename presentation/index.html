@@ -4,7 +4,60 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Authentication and Authorization</title>
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #191724;
+            color: #e0def4;
+        }
+        nav {
+            width: 250px;
+            background-color: #1f1d2e;
+            padding: 20px;
+            position: fixed;
+            height: 100%;
+            overflow-y: auto;
+        }
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        nav ul li {
+            margin: 10px 0;
+        }
+        nav ul li a {
+            color: #9ccfd8;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        nav ul li a:hover {
+            color: #f6c177;
+        }
+        main {
+            margin-left: 270px;
+            padding: 20px;
+            max-width: 800px;
+            margin: 20px auto;
+        }
+        h1, h3 {
+            color: #c4a7e7;
+            cursor: pointer;
+        }
+
+        h2 {
+            color: #9ccfd8;
+            cursor: pointer;
+        }
+        .content {
+            display: none;
+            padding-left: 20px;
+            margin-bottom: 10px;
+        }
+        .active {
+            display: block;
+        }
+    </style>
 </head>
 <body>
 
@@ -12,25 +65,139 @@
     <nav>
         <h2>Contents</h2>
         <ul>
-            <li><a href="introduction.html">Introduction to Authentication</a></li>
-            <li><a href="identification.html">Identification</a></li>
-            <li><a href="authentication.html">Authentication</a></li>
-            <li><a href="authorization.html">Authorization</a></li>
-            <li><a href="clarification.html">Clarification of Terms</a></li>
-            <li><a href="types.html">Types of Authentication</a></li>
-            <li><a href="process.html">Authentication Process</a></li>
-            <li><a href="lifecycle.html">Authentication Lifecycle</a></li>
-            <li><a href="signup.html">Registration (Sign-up)</a></li>
-            <li><a href="signin.html">Login (Sign-in)</a></li>
-            <li><a href="logout.html">Logout (Sign-out)</a></li>
+            <li><a href="#introduction">Introduction</a></li>
+            <li><a href="#identification">Identification</a></li>
+            <li><a href="#authentication">Authentication</a></li>
+            <li><a href="#authorization">Authorization</a></li>
+            <li><a href="#dumb">Dumb Identity and access management process</a></li>
+            <li><a href="#types">Types of Authentication</a></li>
+            <li><a href="#process">Authentication Process</a></li>
+            <li><a href="#lifecycle">Authentication Lifecycle</a></li>
         </ul>
     </nav>
 
     <!-- Main content -->
     <main>
-        <h1>Welcome to Authentication and Authorization</h1>
-        <p>This is an interactive guide. Use the menu on the left to navigate through different sections of authentication and authorization.</p>
+        <h1 id="introduction">Introduction</h1>
+
+        <div class="content">
+            <h2 id="identification">Identification</h2>
+            <div class="content">
+                <p>Отвечает на вопрос: "Кто вы?"</p>
+                <p><strong>Идентификация</strong> — это процесс, посредством которого пользователь представляет себя системе.</p>
+                <p><strong>Credentials</strong> - (англ., реквизиты для входа) - информация, предоставляемая пользователем для подтверждения своей личности.</p>
+            </div>
+
+            <h2 id="authentication">Authentication</h2>
+            <div class="content">
+                <p>Отвечает на вопрос: "Действительно ли вы тот, за кого себя выдаёте?"</p>
+                <p><strong>Аутентификация</strong> — это процесс подтверждения личности пользователя или системы перед предоставлением доступа к ресурсам или выполнением действий.</p>
+
+                <p>Процесс проверки:</p>
+                <ul>
+                    <li>Того, что пользователь знает (пароль)</li>
+                    <li>Того, что пользователь имеет (телефон, токен)</li>
+                    <li>Того, чем является частью пользователя (биометрия: отпечаток пальца, голос)</li>
+                </ul>
+
+                <p>Многофакторная аутентификация требует от пользователя предоставления нескольких форм проверки для подтверждения личности.</p>
+                <p>Следующая форма проверки должна кратно увеличивать степень защиты в отличие от предыдущего.</p>
+                <p><strong>Claims</strong> - данные о пользователе</p>
+                <p>Эти утверждения используются во время авторизации для определения того, к чему пользователь может получить доступ или что он может выполнять.</p>
+                </br>
+                <p>В общем можно разделить на локальные и внешние</p>
+            </div>
+
+            <h2 id="authorization">Authorization</h2>
+            <div class="content">
+                <p>Отвечает на вопрос: "Что вам разрешено делать?"</p>
+                <p><strong>Авторизация</strong> — это процесс определения того, что пользователь, который прошёл аутентификацию, может делать.</p>
+            </div>
+        </div>
+
+        <h1 id="#dumb">Dumb Identity and access management process</h1>
+        <div class="content">
+            <p>Процесс доступа к какому-нибудь ресурсу:</p>
+            <h2>Шаг 1: Пользователь предоставляет учетные данные(реквизиты для входа; credentials)</h2>
+            <p>Пользователь отправляет свои учетные данные, такие как имя пользователя и пароль. В системах с внешней аутентификацией это может включать отправку учетных данных внешнему поставщику идентификации (Identity Provider).</p>
+            <h2>Шаг 2: Система проверяет учетные данные</h2>
+            <p>Система или внешний Identity Provider проверяет предоставленные учетные данные.</p>
+            <h2>Шаг 3: Система проверяет, какие действия может выполнять пользователь.</h2>
+            <p>После проверки токена система проверяет claims для определения того, какие действия может выполнять пользователь.</p>
+            <h2>Шаг 4: Система отдаёт ресурс или система выполняет запрошенное действие.</h2>
+
+            <h2>Что здесь не так?</h2>
+            <div class="content">
+                <p>Каждый раз при запросе ресурса или выполнение действия, просим пользователя себя идентифициовать + приложение постоянно запрашивает данные пользователя.</p>
+                <p>Как сохранить пользователя в системе между запросами без необходимости повторной аутентификации?</p>
+
+                <div>
+                    
+
+                    <h2>Для поддержания сессии пользователя между запросами в системах без сохранения состояния, таких как HTTP.</h2>
+                    <div class="content">
+                        <h2>Session-based type</h2>
+                        <p>Сервер поддерживает сессию для каждого аутентифицированного пользователя.</p>
+                        <code>set-cookie: sessionId=<session_value>; Path=/; HttpOnly; Secure; SameSite=Strict; Expires=<expiration_time></code>
+                        <h2>token-based type (e.g., JWT)</h2>
+                        <p>После успешной аутентификации сервер выдает токен (например, JWT), содержащий данные о пользователе(claims).</p>
+                        <code>eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h1>Identity and access management process</h1>
+        <div class="content">
+            <p>процесс управления доступом можно разбить на несколько шагов:</p>
+            <h2>Шаг 1: Пользователь предоставляет учетные данные(реквизиты для входа; credentials)</h2>
+            <p>Пользователь отправляет свои учетные данные, такие как имя пользователя и пароль. В системах с внешней аутентификацией это может включать отправку учетных данных внешнему поставщику идентификации (Identity Provider).</p>
+            <h2>Шаг 2: Система проверяет учетные данные</h2>
+            <p>Система или внешний Identity Provider проверяет предоставленные учетные данные. Для токенов, таких как JWT, IdP выдает токен после успешной проверки.</p>
+            <h2>Шаг 3: Выпуск токена или создание сессии</h2>
+            <p>Если учетные данные правильны, система генерирует токен аутентификации или сессию.</p>
+            <h2>Шаг 4: Включение токена в запросы</h2>
+            <p>Пользователь включает токен аутентификации (или Id сессии) в последующие HTTP-запросы для доступа к ресурсам.</p>
+            <h2>Шаг 5: Проверка токена/сессии при каждом запросе</h2>
+            <p>Каждый раз, когда пользователь отправляет запрос, система проверяет токен или сессию для подтверждения аутентификации.</p>
+            <h2>Шаг 6: Авторизация</h2>
+            <p>После проверки токена система проверяет сведения о пользователе или данные сессии для определения того, какие действия может выполнять пользователь.</p>
+        </div>
+
+
+        <h1 id="process">Lifecycle</h1>
+        <div class="content">
+            <h2>Регистрация (Sign-Up)</h2>
+            <p>Пользователь создаёт новую учетную запись, предоставляя свои учетные данные и другую необходимую информацию.</p>
+            <h2>Sign-In: Пользователь предоставляет учетные данные</h2>
+            <p>Пользователь отправляет свои учетные данные, такие как имя пользователя и пароль.</p>
+            <h2>Authentication: Система проверяет учетные данные</h2>
+            <p>Система или внешний IdP проверяет предоставленные учетные данные.</p>
+            <h2>Шаг 3: Выпуск токена или создание сессии</h2>
+            <p>Если учетные данные правильны, система генерирует токен аутентификации или сессию.</p>
+            <h2>Sign-Out: Система аннулирует токен или идентификатор сессии</h2>
+            <p>Система меняет expiration date у токена аутентификации или удаляет сессию.</p>
+        </div>
     </main>
+
+    <script>
+        // Select all headers and content sections
+        const headers1 = document.querySelectorAll('h1');
+        headers1.forEach(header => {
+            header.addEventListener('click', () => {
+                const content = header.nextElementSibling;
+                content.classList.toggle('active');
+            });
+        });
+
+        const headers2 = document.querySelectorAll('h2');
+        headers2.forEach(header => {
+            header.addEventListener('click', () => {
+                const content = header.nextElementSibling;
+                content.classList.toggle('active');
+            });
+        });
+    </script>
 
 </body>
 </html>
