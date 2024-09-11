@@ -5,11 +5,6 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
-
-var configuration = new ConfigurationBuilder()
-    .AddUserSecrets<Program>()
-    .Build();
-
 // OAuth extends our application
 
 
@@ -50,6 +45,9 @@ builder.Services.AddAuthentication("cookie")
         // После получения токена доступа приложение использует его для получения информации о пользователе через API GitHub (https://api.github.com/user).
         // Полученная информация обрабатывается, и для пользователя создаются утверждения (claims), которые сохраняются в куки
         options.UserInformationEndpoint = "https://api.github.com/user";
+        
+        options.ClaimActions.MapJsonKey(ClaimTypes.Name, "login");
+        options.ClaimActions.MapJsonKey("sub", "id");
         
         options.Events.OnCreatingTicket = async (context) => {
             using var request = new HttpRequestMessage(HttpMethod.Get, context.Options.UserInformationEndpoint);

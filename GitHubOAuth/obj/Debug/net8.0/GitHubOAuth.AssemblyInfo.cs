@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("GitHubOAuth")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+922f281cb06aad2659cf8b2e57036f079f3d387f")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+14d3af54875024be0c2432a18f6572571f8ae33a")]
 [assembly: System.Reflection.AssemblyProductAttribute("GitHubOAuth")]
 [assembly: System.Reflection.AssemblyTitleAttribute("GitHubOAuth")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
