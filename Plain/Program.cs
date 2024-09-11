@@ -57,6 +57,8 @@ app.MapGet("/signup", async (HttpContext httpContext) => {
 });
 
 app.MapPost("/signup", async (HttpContext httpContext, IPasswordHasher<User> hasher, Database db) => {
+    // 1.Идентификация.
+    // Обработка Credentials и Claims, которые предоставил пользователь
     var form = httpContext.Request.Form;
     var nameCredential = form["name"].ToString();
     var passwordCredential = form["password"].ToString();
@@ -73,13 +75,15 @@ app.MapPost("/signup", async (HttpContext httpContext, IPasswordHasher<User> has
 
     await db.PutAsync(user);
 
+    // 2. Sign-in часть: создаём и сохраняем сессию
     Random random = new Random();
     int randomNumber = random.Next(1, 7);
     var session = new Session(randomNumber, user.Claims);
     savedSessions.TryAdd(session.Id, session);
 
+    // 3. Теперь браузер по нашей просьбе устанавливает куки в каждый запрос, которые мы может читать.
     httpContext.Response.Headers.SetCookie = ConversionScheme.ClaimsToCookieString(session, user);
-    httpContext.Response.Redirect("/user");
+    httpContext.Response.Redirect("/task-list");
 });
 
 
@@ -109,6 +113,7 @@ app.MapPost("/signin", async (HttpContext httpContext, IPasswordHasher<User> has
     var providedPasswordCredential = form["password"].ToString();
 
 
+    // Аутентификация - проверка что такие credentials есть в нашей системе
     var user = await db.GetUserAsync(providedNameCredential);
     if (user == null || hasher.VerifyHashedPassword(user, user.Password, providedPasswordCredential) !=
         PasswordVerificationResult.Success) {
@@ -116,29 +121,22 @@ app.MapPost("/signin", async (HttpContext httpContext, IPasswordHasher<User> has
         return;
     }
 
+    // Sign-in часть: создаём и сохраняем сессию. В этом месте мы либо создаем сессию, либо засовываем Claims в токен
     var random = new Random();
     var randomNumber = random.Next(1, 7);
     var session = new Session(randomNumber, user.Claims);
     savedSessions.TryAdd(session.Id, session);
 
+    // 2. Теперь браузер по нашей просьбе устанавливает куки в каждый запрос, которые мы может читать.
     httpContext.Response.Headers.SetCookie = ConversionScheme.ClaimsToCookieString(session, user);
     httpContext.Response.Redirect("/task-list");
 });
 
 app.MapGet("/signout", async (HttpContext httpContext) => {
-    await httpContext.SignOutAsync("cookie");
-    httpContext.Response.Headers.SetCookie = "auth=";
-    httpContext.Response.Redirect("/");
-});
-
-// 2. Теперь браузер по нашей просьбе устанавливает куки в каждый запрос, которые мы может читать.
-
-app.MapGet("/user", async (HttpContext httpContext) => {
-    // Check if the authentication cookie is present
     var authCookie = httpContext.Request.Headers.Cookie.FirstOrDefault(x => x.StartsWith("auth="));
     if (authCookie != null) {
         // Try to convert the cookie back to claims
-        var claims = ConversionScheme.CookieStringToClaims(authCookie);
+        var claims = ConversionScheme.CookieStringToSessionId(authCookie);
 
         if (claims.Any()) {
             // Convert the first claim type to an integer key
@@ -148,8 +146,41 @@ app.MapGet("/user", async (HttpContext httpContext) => {
             if (savedSessions.TryGetValue(key, out var session)) {
                 if (session.IsExpired) {
                     savedSessions.TryRemove(key, out _);
+                    await httpContext.SignOutAsync("cookie");
+                    httpContext.Response.Headers.SetCookie = "auth=";
                     httpContext.Response.Redirect("/signin");
-                    return "";
+                    return "signed out";
+                }
+
+                var claimDetails = session.Claims.Select(c => $"{c.Type}:{c.Value};");
+                return $"User's {claims[0].Type}: {claims[0].Value}; {string.Join(", ", claimDetails)}";
+            }
+        }
+    }
+
+    httpContext.Response.Redirect("/signin");
+    return "signed out";
+});
+
+app.MapGet("/user", async (HttpContext httpContext) => {
+    // Check if the authentication cookie is present
+    var authCookie = httpContext.Request.Headers.Cookie.FirstOrDefault(x => x.StartsWith("auth="));
+    if (authCookie != null) {
+        // Try to convert the cookie back to claims
+        var claims = ConversionScheme.CookieStringToSessionId(authCookie);
+
+        if (claims.Any()) {
+            // Convert the first claim type to an integer key
+            var key = Convert.ToInt32(claims[0].Value);
+
+            // Check if the session exists in the saved sessions
+            if (savedSessions.TryGetValue(key, out var session)) {
+                if (session.IsExpired) {
+                    savedSessions.TryRemove(key, out _);
+                    await httpContext.SignOutAsync("cookie");
+                    httpContext.Response.Headers.SetCookie = "auth=";
+                    httpContext.Response.Redirect("/signin");
+                    return "signed out";
                 }
 
                 var claimDetails = session.Claims.Select(c => $"{c.Type}:{c.Value};");
@@ -191,47 +222,50 @@ app.MapGet("/task-list", async (httpContext) => {
 <body>
     <h1>Available Routes</h1>
     <ul>
-        <li><a href='/push-to-master-branch'>push to master branch</a></li>
-        <li><a href='/write-complex-system'>write complex system</a></li>
-        <li><a href='/config-pipeline'> config pipeline</a></li>
-        <li><a href='/test-system'>test system</a></li>
+        <li><a href='/push-to-master-branch'>push to master branch. Requires: Expert programmes skills</a></li>
+        <li><a href='/write-complex-system'>write complex system Requires: Advanced programmes skills </a></li>
+        <li><a href='/config-pipeline'> config pipeline Requires: Intermediate devops or Advanced programmes skills</a></li>
+        <li><a href='/test-system'>test system Requires: Expert programmes skills</a></li>
     </ul>
 </body>
 </html>";
     await httpContext.Response.WriteAsync(response);
 });
-app.MapGet("/push-to-master-branch", (HttpContext httpContext) => {
+
+
+app.MapGet("/push-to-master-branch", async (HttpContext httpContext) => {
     // Get the authentication cookie (or other means of identifying the user)
     var authCookie = httpContext.Request.Headers.Cookie.FirstOrDefault(x => x.StartsWith("auth="));
 
     if (authCookie != null) {
         // Convert the cookie back to claims
-        var claims = ConversionScheme.CookieStringToClaims(authCookie);
-        
-        if (claims.Any()) {
-            // Convert the first claim type to an integer key
-            var key = Convert.ToInt32(claims[0].Value);
+        var sessionInfo = ConversionScheme.CookieStringToSessionId(authCookie);
 
-            // Check if the session exists in the saved sessions
+        if (sessionInfo.Any()) {
+            // Convert the first claim type to an integer key
+            var key = Convert.ToInt32(sessionInfo[0].Value);
+
+            // Если ли сессия
             if (savedSessions.TryGetValue(key, out var session)) {
                 if (!session.IsExpired) {
-                    // Check if user has the required claims: title = programmer and skills = Expert
+                    // Проверяем требуемые claims у аутентифицированного пользователя title = programmer and skills = Expert
                     var titleClaim = session.Claims.FirstOrDefault(c => c.Type == "title" && c.Value == "programmer");
                     var skillsClaim = session.Claims.FirstOrDefault(c => c.Type == "skills" && c.Value == "Expert");
 
                     if (titleClaim != null && skillsClaim != null) {
-                        // User has the correct claims, proceed with the action
+                        // Аутентифицированный пользователь имеет необходимы claims
                         return "Access granted. You can push to the master branch.";
                     }
-                    
-                    savedSessions.TryRemove(key, out _);
 
-                    var details = session.Claims.Select(c => $"{c.Type}:{c.Value};");
+                    var details = string.Join(";", session.Claims.Select(c => $"{c.Type}:{c.Value}"));
                     return $"Unauthorized: {details}";
                 }
 
-                var claimDetails = session.Claims.Select(c => $"{c.Type}:{c.Value};");
-                return $"User's {claims[0].Type}: {claims[0].Value}; {string.Join(", ", claimDetails)}";
+                savedSessions.TryRemove(key, out _);
+                await httpContext.SignOutAsync("cookie");
+                httpContext.Response.Headers.SetCookie = "auth=";
+                httpContext.Response.Redirect("/signin");
+                return "signed out";
             }
         }
     }
@@ -240,7 +274,47 @@ app.MapGet("/push-to-master-branch", (HttpContext httpContext) => {
     return "Unauthorized";
 });
 
-app.MapGet("/write-complex-system", () => "");
+app.MapGet("/write-complex-system", async (HttpContext httpContext) => {
+    // Get the authentication cookie (or other means of identifying the user)
+    var authCookie = httpContext.Request.Headers.Cookie.FirstOrDefault(x => x.StartsWith("auth="));
+
+    if (authCookie != null) {
+        // Convert the cookie back to claims
+        var sessionInfo = ConversionScheme.CookieStringToSessionId(authCookie);
+
+        if (sessionInfo.Any()) {
+            // Convert the first claim type to an integer key
+            var key = Convert.ToInt32(sessionInfo[0].Value);
+
+            // Если ли сессия
+            if (savedSessions.TryGetValue(key, out var session)) {
+                if (!session.IsExpired) {
+                    // Проверяем требуемые claims у аутентифицированного пользователя title = programmer and skills = Expert
+                    var titleClaim = session.Claims.FirstOrDefault(c => c.Type == "title" && c.Value == "programmer");
+                    var skillsClaim = session.Claims.FirstOrDefault(c => c.Type == "skills" && c.Value == "Advanced");
+
+                    if (titleClaim != null && skillsClaim != null) {
+                        // Аутентифицированный пользователь имеет необходимы claims
+                        return "Access granted. You can write complex system.";
+                    }
+
+                    var details = string.Join(";", session.Claims.Select(c => $"{c.Type}:{c.Value}"));
+                    return $"Unauthorized: {details}";
+                }
+
+                savedSessions.TryRemove(key, out _);
+                await httpContext.SignOutAsync("cookie");
+                httpContext.Response.Headers.SetCookie = "auth=";
+                httpContext.Response.Redirect("/signin");
+                return "signed out";
+            }
+        }
+    }
+
+    // If user does not have the required claims, deny access
+    return "Unauthorized";
+});
+
 app.MapGet("/config-pipeline", () => "");
 app.MapGet("/test-system", () => "");
 
@@ -272,7 +346,7 @@ public class ConversionScheme {
         return sb.ToString();
     }
 
-    public static List<UserClaim> CookieStringToClaims(string str) {
+    public static List<UserClaim> CookieStringToSessionId(string str) {
         var payload = str.Split("=").Last();
         var parts = payload.Split(';');
 
